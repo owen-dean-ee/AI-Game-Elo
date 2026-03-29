@@ -41,15 +41,32 @@ async function runBatchAnalysis() {
   };
 
   try {
+    log("Fetching /api/auth/session...", false, "Authenticating...");
+    let accessToken = null;
+    try {
+      const sessionRes = await fetch('/api/auth/session');
+      if (sessionRes.ok) {
+        const sessionData = await sessionRes.json();
+        accessToken = sessionData.accessToken;
+      }
+    } catch(e) {
+      log("Warning: Failed to fetch auth session", false, "Auth Warning");
+    }
+
     log("Fetching /backend-api/conversations...", false, "Fetching history...");
-    const res = await fetch('/backend-api/conversations?offset=0&limit=50');
-    if (!res.ok) throw new Error("Failed to fetch conversation history");
+    const headers = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    const res = await fetch('/backend-api/conversations?offset=0&limit=50', { headers });
+    if (!res.ok) throw new Error(`Failed to fetch conversation history: ${res.status}`);
 
     const data = await res.json();
     let items = data.items;
 
     if (!items || items.length === 0) {
-      log("No chats found.", true, "Complete");
+      log(`No chats found. Debug data: ${JSON.stringify(data).substring(0, 300)}`, true, "Complete");
       return;
     }
 
@@ -67,7 +84,7 @@ async function runBatchAnalysis() {
       log(`\n[${i + 1}/${items.length}] Checking: ${title} (${chatUrl})`);
 
       // 1. Fetch convo JSON
-      const cRes = await fetch(`/backend-api/conversation/${chatId}`);
+      const cRes = await fetch(`/backend-api/conversation/${chatId}`, { headers });
       if (!cRes.ok) {
         log(`Failed to fetch chat contents. Skipping.`);
         continue;

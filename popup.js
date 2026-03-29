@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   const apiKeyInput = document.getElementById('apiKey');
   const userNameInput = document.getElementById('userName');
+  const memeModeToggle = document.getElementById('memeModeToggle');
   const saveSettingsBtn = document.getElementById('saveSettingsBtn');
   const resetDataBtn = document.getElementById('resetDataBtn');
   const settingsMessage = document.getElementById('settingsMessage');
@@ -19,15 +20,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const historyList = document.getElementById('historyList');
 
   // Load Initial Data
-  let storageData = await chrome.storage.local.get(['groqApiKey', 'userName', 'currentElo', 'eloHistory']);
+  let storageData = await chrome.storage.local.get(['groqApiKey', 'userName', 'currentElo', 'eloHistory', 'memeMode']);
   
   // Set defaults
   let currentElo = storageData.currentElo || 1200;
   let history = storageData.eloHistory || [];
+  let memeMode = storageData.memeMode !== undefined ? storageData.memeMode : false;
   
   userNameInput.value = storageData.userName || "";
   apiKeyInput.value = storageData.groqApiKey || "";
   userNameEl.textContent = storageData.userName || "Player";
+  if (memeModeToggle) memeModeToggle.checked = memeMode;
 
   updateUI(currentElo, history);
 
@@ -55,6 +58,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // --- SETTINGS LOGIC ---
+  if (memeModeToggle) {
+    memeModeToggle.addEventListener('change', async (e) => {
+      memeMode = e.target.checked;
+      await chrome.storage.local.set({ memeMode });
+      updateUI(currentElo, history);
+    });
+  }
+
   saveSettingsBtn.addEventListener('click', async () => {
     const key = apiKeyInput.value.trim();
     const name = userNameInput.value.trim();
@@ -146,13 +157,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- UI & GRAPH LOGIC ---
   function getRankDetails(elo) {
-    if (elo < 1000) return { name: 'Absolute Chud', class: 'absolute-chud', color: '#8b5a2b' };
-    if (elo < 1100) return { name: 'Bottom-Feeder', class: 'bottom-feeder', color: '#cd7f32' };
-    if (elo < 1200) return { name: 'Sheep', class: 'sheep', color: '#9e9e9e' };
-    if (elo < 1300) return { name: 'Mid-Maxxer', class: 'mid-maxxer', color: '#e2c044' };
-    if (elo < 1400) return { name: 'Goated', class: 'goated', color: '#8bc8cb' };
-    if (elo < 1500) return { name: 'Cracked', class: 'cracked', color: '#9E8EE4' };
-    return { name: 'Max-Maxxing', class: 'max-maxxing', color: '#E91E63' };
+    if (memeMode) {
+      if (elo < 1000) return { name: 'Absolute Chud', class: 'absolute-chud', color: '#8b5a2b' };
+      if (elo < 1100) return { name: 'Bottom-Feeder', class: 'bottom-feeder', color: '#cd7f32' };
+      if (elo < 1200) return { name: 'Sheep', class: 'sheep', color: '#9e9e9e' };
+      if (elo < 1300) return { name: 'Mid-Maxxer', class: 'mid-maxxer', color: '#e2c044' };
+      if (elo < 1400) return { name: 'Goated', class: 'goated', color: '#8bc8cb' };
+      if (elo < 1500) return { name: 'Cracked', class: 'cracked', color: '#9E8EE4' };
+      return { name: 'Max-Maxxing', class: 'max-maxxing', color: '#E91E63' };
+    } else {
+      if (elo < 1000) return { name: 'Iron', class: 'absolute-chud', color: '#8b5a2b' };
+      if (elo < 1100) return { name: 'Bronze', class: 'bottom-feeder', color: '#cd7f32' };
+      if (elo < 1200) return { name: 'Silver', class: 'sheep', color: '#9e9e9e' };
+      if (elo < 1300) return { name: 'Gold', class: 'mid-maxxer', color: '#e2c044' };
+      if (elo < 1400) return { name: 'Platinum', class: 'goated', color: '#8bc8cb' };
+      if (elo < 1500) return { name: 'Diamond', class: 'cracked', color: '#9E8EE4' };
+      return { name: 'Master', class: 'max-maxxing', color: '#E91E63' };
+    }
   }
 
   function updateUI(elo, hist) {
