@@ -2,16 +2,25 @@
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "analyzeChat") {
-    handleAnalysis(request.conversation, sendResponse);
+    handleAnalysis(request, sendResponse);
     return true; // Keep message channel open for async
   }
 });
 
-async function handleAnalysis(conversation, sendResponse) {
+async function handleAnalysis(request, sendResponse) {
   try {
+    const conversation = request.conversation;
+    const chatUrl = request.chatUrl;
+
     // 1. Fetch the Groq API Key from storage
-    const storageData = await chrome.storage.local.get(["groqApiKey", "currentElo", "eloHistory"]);
+    const storageData = await chrome.storage.local.get(["groqApiKey", "currentElo", "eloHistory", "analyzedChats"]);
     const apiKey = storageData.groqApiKey;
+    let analyzedChats = storageData.analyzedChats || {};
+
+    if (chatUrl && analyzedChats[chatUrl]) {
+      sendResponse({ success: false, error: "Already Analyzed Chat!" });
+      return;
+    }
 
     if (!apiKey) {
       sendResponse({ success: false, error: "Please set your Groq API Key in the Settings tab." });
@@ -109,11 +118,11 @@ No other text should be output on that final line.`;
 
     // 5. Update Elo
     let currentElo = storageData.currentElo || 1200;
-    
+
     // Ra = currentElo, Rb = Ra (playing against equal difficulty)
     // Ea = 1 / (1 + 10^0) = 0.5
-    let Ea = 0.5; 
-    let k = 25; 
+    let Ea = 0.5;
+    let k = 25;
     let eloDiff = Math.round(k * (Sa - Ea));
     let newElo = currentElo + eloDiff;
 
@@ -130,9 +139,14 @@ No other text should be output on that final line.`;
       eloHistory = eloHistory.slice(-100);
     }
 
+    if (chatUrl) {
+      analyzedChats[chatUrl] = true;
+    }
+
     await chrome.storage.local.set({
       currentElo: newElo,
-      eloHistory: eloHistory
+      eloHistory: eloHistory,
+      analyzedChats: analyzedChats
     });
 
     sendResponse({

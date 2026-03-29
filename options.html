@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>AI Game Elo - Settings</title>
@@ -12,6 +13,7 @@
             --font-family: 'Inter', sans-serif;
             --border-radius: 8px;
         }
+
         body {
             font-family: var(--font-family);
             background-color: var(--bg-beige);
@@ -21,22 +23,26 @@
             display: flex;
             justify-content: center;
         }
+
         .container {
             max-width: 500px;
             width: 100%;
             background: #fff;
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
+
         h1 {
             color: var(--text-dark-grey);
             font-size: 24px;
             margin-top: 0;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             font-weight: 600;
@@ -44,6 +50,7 @@
             color: var(--text-dark-grey);
             font-size: 14px;
         }
+
         input {
             width: 100%;
             padding: 12px;
@@ -54,10 +61,12 @@
             background-color: #FAFAFA;
             font-family: inherit;
         }
+
         input:focus {
             outline: none;
             border-color: var(--text-dark-grey);
         }
+
         .primary-btn {
             background-color: var(--text-dark-grey);
             color: #fff;
@@ -70,9 +79,11 @@
             width: 100%;
             transition: background-color 0.2s;
         }
+
         .primary-btn:hover {
             background-color: #000;
         }
+
         .success-msg {
             margin-top: 16px;
             color: #388E3C;
@@ -82,25 +93,45 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
         <h1>Extension Settings</h1>
-        
+
         <div class="form-group">
             <label for="apiKey">Groq API Key</label>
             <input type="password" id="apiKey" placeholder="gsk_..." spellcheck="false" />
         </div>
-        
+
         <div class="form-group">
             <label for="userName">Player Name</label>
             <input type="text" id="userName" placeholder="Your Name" />
         </div>
-        
+
         <button id="saveBtn" class="primary-btn">Save Settings</button>
         <div id="statusMsg" class="success-msg">Settings saved successfully!</div>
+
+        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
+
+        <h2 style="color: var(--text-dark-grey); font-size: 20px; margin-top: 0;">Batch Analyzer</h2>
+        <p style="font-size: 13px; color: var(--text-grey); margin-bottom: 20px; line-height: 1.5;">
+            Automatically score your last 50 ChatGPT conversations from oldest to newest.<br />
+            <strong>You must have at least one chatgpt.com tab open for this to access your history safely.</strong>
+        </p>
+
+        <button id="batchBtn" class="primary-btn" style="background-color: #388E3C;">Start Batch Analysis (Last
+            50)</button>
+        <div id="batchStatus"
+            style="color: var(--text-dark-grey); margin-top: 16px; font-size: 14px; text-align: center; font-weight: 600; display: none;">
+        </div>
+        <div id="batchProgress"
+            style="font-size: 12px; color: var(--text-grey); margin-top: 8px; text-align: center; height: 120px; overflow-y: auto; text-align: left; padding: 10px; background: #FAFAFA; border: 1px solid #eee; border-radius: 8px; display: none; white-space: pre-wrap;">
+        </div>
+
     </div>
 
     <script src="options.js"></script>
 </body>
+
 </html>

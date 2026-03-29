@@ -40,7 +40,7 @@
                         <span class="iq-score rank-color" id="currentScore">1200</span>
                     </div>
                     <div class="rank-badge-container">
-                        <span class="rank-badge rank-color" id="currentRank">Silver</span>
+                        <span class="rank-badge rank-color" id="currentRank">Sheep</span>
                     </div>
                 </div>
 
@@ -77,8 +77,17 @@
                 </div>
                 <!-- Developer actions to clear storage -->
                 <button id="saveSettingsBtn" class="primary-btn">Save Settings</button>
-                <button id="resetDataBtn" class="secondary-btn margin-top">Reset All Data</button>
                 <div id="settingsMessage" class="success-msg hidden">Saved successfully.</div>
+                
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;" />
+                
+                <h4 style="margin: 0 0 10px 0;">Batch Analyzer (Last 50)</h4>
+                <button id="batchBtn" class="primary-btn" style="background-color: #388E3C;">Start Batch Analysis</button>
+                <div id="batchStatus" style="color: var(--text-dark-grey); margin-top: 10px; font-size: 13px; text-align: center; font-weight: 600; display: none;"></div>
+                <div id="batchProgress" style="font-size: 11px; color: var(--text-grey); margin-top: 8px; text-align: left; height: 80px; overflow-y: auto; padding: 6px; background: #FAFAFA; border: 1px solid #eee; border-radius: 4px; display: none; white-space: pre-wrap;"></div>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;" />
+                <button id="resetDataBtn" class="secondary-btn margin-top">Reset All Data</button>
             </section>
 
         </main>

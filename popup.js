@@ -16,10 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const resetDataBtn = document.getElementById('resetDataBtn');
   const settingsMessage = document.getElementById('settingsMessage');
   
-  const analyzeBtn = document.getElementById('analyzeBtn');
-  const loadingStatus = document.getElementById('loadingStatus');
-  const errorMessage = document.getElementById('errorMessage');
-  
   const historyList = document.getElementById('historyList');
 
   // Load Initial Data
@@ -83,16 +79,80 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // --- BATCH LOGIC ---
+  const batchBtn = document.getElementById('batchBtn');
+  if (batchBtn) {
+    const batchStatus = document.getElementById('batchStatus');
+    const batchProgress = document.getElementById('batchProgress');
+
+    batchBtn.addEventListener('click', async () => {
+        const chatTabs = await chrome.tabs.query({ url: "*://chatgpt.com/*" });
+        if (chatTabs.length === 0) {
+            alert("Please open a chatgpt.com tab first so we can securely access your history!");
+            return;
+        }
+
+        const data = await chrome.storage.local.get('groqApiKey');
+        if(!data.groqApiKey) {
+            alert("Please save your Groq API Key first.");
+            return;
+        }
+
+        batchBtn.disabled = true;
+        batchBtn.style.backgroundColor = '#9e9e9e';
+        batchStatus.style.display = 'block';
+        batchProgress.style.display = 'block';
+        batchStatus.textContent = "Initializing batch analysis...";
+        batchProgress.textContent = "Fetching chat history...";
+
+        // Make sure script is injected just in case
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: chatTabs[0].id },
+                files: ['content.js']
+            });
+        } catch(e) {}
+
+        chrome.tabs.sendMessage(chatTabs[0].id, { action: "startBatchAnalysis" }, (res) => {
+            if (chrome.runtime.lastError) {
+                batchStatus.textContent = "Connection failed. Please refresh your ChatGPT tab and try again.";
+                batchBtn.disabled = false;
+                batchBtn.style.backgroundColor = '#388E3C';
+            }
+        });
+    });
+
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === "batchProgressUpdate") {
+            if (request.status) batchStatus.textContent = request.status;
+            if (request.log) {
+                batchProgress.textContent += "\n" + request.log;
+                batchProgress.scrollTop = batchProgress.scrollHeight;
+            }
+            if (request.done) {
+                batchBtn.disabled = false;
+                batchBtn.style.backgroundColor = '#388E3C';
+                batchBtn.textContent = "Analysis Complete";
+                // Optionally update UI when done
+                chrome.storage.local.get(['currentElo', 'eloHistory'], (newData) => {
+                   updateUI(newData.currentElo || 1200, newData.eloHistory || []);
+                });
+            }
+        }
+    });
+  }
+
 
 
   // --- UI & GRAPH LOGIC ---
   function getRankDetails(elo) {
-    if (elo < 1100) return { name: 'Bronze', class: 'bronze', color: '#cd7f32' };
-    if (elo < 1200) return { name: 'Silver', class: 'silver', color: '#9e9e9e' };
-    if (elo < 1300) return { name: 'Gold', class: 'gold', color: '#e2c044' };
-    if (elo < 1400) return { name: 'Platinum', class: 'platinum', color: '#8bc8cb' };
-    if (elo < 1500) return { name: 'Diamond', class: 'diamond', color: '#9E8EE4' };
-    return { name: 'Master', class: 'master', color: '#E91E63' };
+    if (elo < 1000) return { name: 'Spud', class: 'spud', color: '#8b5a2b' };
+    if (elo < 1100) return { name: 'Chud', class: 'chud', color: '#cd7f32' };
+    if (elo < 1200) return { name: 'Sheep', class: 'sheep', color: '#9e9e9e' };
+    if (elo < 1300) return { name: 'bottom-feeder', class: 'bottom-feeder', color: '#e2c044' };
+    if (elo < 1400) return { name: 'mid', class: 'mid', color: '#8bc8cb' };
+    if (elo < 1500) return { name: 'GOAT', class: 'goat', color: '#9E8EE4' };
+    return { name: 'Cracked AF', class: 'cracked-af', color: '#E91E63' };
   }
 
   function updateUI(elo, hist) {
@@ -101,7 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentRankEl.textContent = rank.name;
 
     // Remove all old rank colors
-    const rankClasses = ['bronze', 'silver', 'gold', 'platinum', 'diamond', 'master'];
+    const rankClasses = ['spud', 'chud', 'sheep', 'bottom-feeder', 'mid', 'goat', 'cracked-af'];
     currentScoreEl.classList.remove(...rankClasses);
     currentRankEl.classList.remove(...rankClasses);
 
